@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MovilTrack">
+  <meta name="theme-color" content="#0f2a4a">
+  <meta name="description" content="Juego de entrenamiento visual controlado con la mirada. Código abierto y gratuito.">
+  <title>MovilTrack</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ INICIO ============ -->
+<section id="screen-home" class="screen active">
+  <div class="home">
+    <header class="home-head">
+      <h1>MovilTrack</h1>
+      <p class="tag">Carreras con la mirada</p>
+    </header>
+    <canvas id="home-preview" aria-label="Vehículo elegido"></canvas>
+    <p id="home-summary" class="summary"></p>
+    <div class="home-actions">
+      <button id="btn-play" class="btn big primary">▶&nbsp; Jugar</button>
+      <button id="btn-calibrate" class="btn">👁️&nbsp; Calibrar mirada</button>
+    </div>
+    <p id="calib-status" class="status"></p>
+    <button id="btn-settings" class="hold-btn" aria-label="Ajustes del adulto. Mantén presionado dos segundos.">
+      <span class="hold-fill"></span><span class="hold-label">⚙️ Ajustes del adulto <small>(mantén presionado)</small></span>
+    </button>
+    <p class="disclaimer">Herramienta de juego y entrenamiento visual. <strong>No es un dispositivo médico.</strong>
+      El video de la cámara se procesa solo en este equipo y no se envía a ningún lugar.</p>
+  </div>
+</section>
+
+<!-- ============ AJUSTES DEL ADULTO ============ -->
+<section id="screen-settings" class="screen">
+  <div class="settings">
+    <header class="settings-head">
+      <h2>Ajustes del adulto</h2>
+      <button id="btn-settings-done" class="btn primary">Listo</button>
+    </header>
+
+    <div class="group">
+      <h3>Vehículo</h3>
+      <div class="seg" data-key="vehicle">
+        <button data-val="car">🚗 Auto</button>
+        <button data-val="moto">🏍️ Moto</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Color</h3>
+      <div class="seg swatches" data-key="color">
+        <button data-val="blue"  class="sw" style="--sw:#1f6fe0">Azul</button>
+        <button data-val="red"   class="sw" style="--sw:#e03131">Rojo</button>
+        <button data-val="green" class="sw" style="--sw:#2f9e44">Verde</button>
+        <button data-val="white" class="sw" style="--sw:#f7f7f7">Blanco</button>
+        <button data-val="black" class="sw" style="--sw:#202226">Negro</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Clima (de día)</h3>
+      <div class="seg" data-key="weather">
+        <button data-val="sun">☀️ Sol</button>
+        <button data-val="rain">🌧️ Lluvia</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Dificultad de la pista</h3>
+      <div class="seg" data-key="level" data-type="num">
+        <button data-val="1">1</button><button data-val="2">2</button><button data-val="3">3</button><button data-val="4">4</button><button data-val="5">5</button>
+      </div>
+      <p id="level-info" class="hint"></p>
+      <h3>Carriles</h3>
+      <div class="seg" data-key="lanes" data-type="num">
+        <button data-val="2">2 carriles (izq. / der.)</button>
+        <button data-val="3">3 carriles</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Cómo se controla</h3>
+      <div class="seg" data-key="inputMode">
+        <button data-val="gaze">👁️ Mirada (cámara)</button>
+        <button data-val="touch">👆 Toque (sin cámara)</button>
+      </div>
+      <p class="hint">El modo toque sirve para que el adulto pruebe el juego o para niños que puedan tocar la pantalla.</p>
+    </div>
+
+    <div class="group gaze-only">
+      <h3>Ajustes de mirada</h3>
+      <label class="field">Ojo a seguir</label>
+      <div class="seg" data-key="eye">
+        <button data-val="both">Ambos</button>
+        <button data-val="right">Derecho del niño</button>
+        <button data-val="left">Izquierdo del niño</button>
+      </div>
+      <p class="hint">Usa un solo ojo si hay estrabismo o si un ojo se mueve menos.</p>
+
+      <label class="field" for="r-sens">Sensibilidad: <output data-for="sensitivity"></output></label>
+      <input id="r-sens" type="range" min="0" max="1" step="0.05" data-key="sensitivity">
+      <p class="hint">Más alta = basta con mirar un poco hacia el lado. Más baja = hay que mirar más al borde (menos cambios accidentales).</p>
+
+      <label class="field" for="r-dwell">Tiempo de fijación: <output data-for="dwellMs"></output></label>
+      <input id="r-dwell" type="range" min="200" max="1500" step="50" data-key="dwellMs">
+      <p class="hint">Cuánto tiempo debe sostener la mirada para que el vehículo cambie de carril.</p>
+
+      <label class="check"><input type="checkbox" data-key="blinkPause"> Parpadeo largo para pausar o seguir</label>
+      <label class="field" for="r-blink">Duración del parpadeo largo: <output data-for="longBlinkMs"></output></label>
+      <input id="r-blink" type="range" min="600" max="2500" step="100" data-key="longBlinkMs">
+
+      <label class="check"><input type="checkbox" data-key="showCamera"> Mostrar la cámara pequeña durante el juego</label>
+    </div>
+
+    <div class="group">
+      <h3>Sesión</h3>
+      <label class="field" for="r-min">Duración: <output data-for="sessionMinutes"></output></label>
+      <input id="r-min" type="range" min="1" max="10" step="1" data-key="sessionMinutes">
+      <p class="hint">Sesiones cortas ayudan a evitar la fatiga visual.</p>
+      <label class="check"><input type="checkbox" data-key="sound"> Sonidos</label>
+    </div>
+
+    <div class="group">
+      <h3>Historial de sesiones</h3>
+      <div id="history-list" class="history"></div>
+      <div class="row">
+        <button id="btn-export" class="btn">⬇️ Exportar CSV</button>
+        <button id="btn-clear" class="btn danger">Borrar historial</button>
+      </div>
+    </div>
+
+    <div class="group about">
+      <h3>Acerca de</h3>
+      <p>MovilTrack es <strong>código abierto</strong> (licencia MIT) y gratuito.
+        Usa MediaPipe (Apache 2.0) para detectar el iris con la cámara.
+        No es un dispositivo médico ni reemplaza a un sistema de seguimiento ocular certificado.</p>
+      <p><a href="https://github.com/jsilvariffo21-alt/apps" target="_blank" rel="noopener">Código fuente en GitHub</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CALIBRACIÓN ============ -->
+<section id="screen-calib" class="screen">
+  <div id="calib-setup" class="calib-step">
+    <div class="calib-card">
+      <h2>Preparar la cámara</h2>
+      <div class="cam-wrap">
+        <video id="calib-video" playsinline muted autoplay></video>
+        <div id="face-badge" class="badge">Buscando rostro…</div>
+      </div>
+      <ul class="tips">
+        <li>Usa el teléfono <strong>horizontal</strong> y fíjalo con un soporte.</li>
+        <li>Distancia: <strong>25 a 35 cm</strong> de la cara.</li>
+        <li>Luz de frente; evita ventanas detrás del niño.</li>
+      </ul>
+      <div class="row">
+        <button id="calib-cancel" class="btn">Volver</button>
+        <button id="calib-start" class="btn primary" disabled>Comenzar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="calib-targets" class="calib-step">
+    <div id="calib-target" class="target"><span>⭐</span><i class="ring"></i></div>
+    <p id="calib-hint" class="calib-hint">Mira la estrella</p>
+  </div>
+
+  <div id="calib-test" class="calib-step">
+    <div class="calib-card">
+      <h2 id="calib-test-title">Prueba la mirada</h2>
+      <p id="calib-test-text">Pide al niño que mire a cada lado. La zona que se ilumina es la que detecta el juego.</p>
+      <div class="zones">
+        <div class="zone" data-zone="left">⬅️</div>
+        <div class="zone" data-zone="center">⏺</div>
+        <div class="zone" data-zone="right">➡️</div>
+      </div>
+      <div class="meter" aria-hidden="true">
+        <i class="meter-t" id="meter-tl"></i><i class="meter-t" id="meter-tr"></i><b id="meter-dot"></b>
+      </div>
+      <p id="calib-quality" class="hint"></p>
+      <div class="row">
+        <button id="calib-redo" class="btn">Repetir</button>
+        <button id="calib-done" class="btn primary">Listo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JUEGO ============ -->
+<section id="screen-game" class="screen">
+  <canvas id="game-canvas"></canvas>
+  <div class="hud">
+    <div class="hud-score">⭐ <span id="hud-stars">0</span></div>
+    <div class="hud-time"><div id="hud-time-bar"></div></div>
+    <button id="btn-pause" class="hud-btn" aria-label="Pausa">⏸</button>
+  </div>
+  <video id="game-video" class="cam-mini" playsinline muted autoplay></video>
+  <div id="gaze-ind" class="gaze-ind" aria-hidden="true">
+    <span data-zone="left"><i></i></span><span data-zone="center"><i></i></span><span data-zone="right"><i></i></span>
+  </div>
+  <div id="countdown" class="countdown hidden"></div>
+  <div id="overlay" class="overlay hidden">
+    <div class="card">
+      <h2 id="ov-title"></h2>
+      <p id="ov-text"></p>
+      <div id="ov-stats" class="stats"></div>
+      <div id="ov-actions" class="row wrap"></div>
+    </div>
+  </div>
+</section>
+
+<div id="loading" class="overlay hidden"><div class="card"><div class="spinner"></div><p id="loading-text">Cargando…</p></div></div>
+<div id="toast" class="toast hidden" role="status"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

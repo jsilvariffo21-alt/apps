@@ -1,0 +1,17 @@
+{
+  "name": "MovilTrack — carreras con la mirada",
+  "short_name": "MovilTrack",
+  "description": "Juego de entrenamiento visual controlado con la mirada. Código abierto y gratuito.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0f2a4a",
+  "theme_color": "#0f2a4a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
