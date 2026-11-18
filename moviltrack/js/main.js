@@ -3,7 +3,7 @@ import { GazeTracker, thresholdFor } from './gaze.js';
 import { Game } from './game.js';
 import { Sound } from './audio.js';
 import { addSession, getSessions, clearSessions, toCSV } from './history.js';
-import { drawVehicle, COLORS, VEHICLES } from './vehicles.js';
+import { drawVehicle, drawVehicleRear, COLORS, VEHICLES } from './vehicles.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -67,7 +67,7 @@ function holdButton(btn, ms, cb) {
   btn.addEventListener('pointerdown', start);
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, cancel));
   btn.addEventListener('contextmenu', e => e.preventDefault());
-  // Teclado (accesibilidad para el adulto en computador)
+  // Teclado (accesibilidad para la persona adulta en computador)
   btn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cb(); } });
 }
 
@@ -120,13 +120,28 @@ function renderHome() {
   ctx.clearRect(0, 0, size, size);
   ctx.save();
   ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2); ctx.clip();
-  ctx.fillStyle = settings.weather === 'rain' ? '#4e7a4a' : '#78c159';
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = settings.weather === 'rain' ? '#454b53' : '#5f656e';
-  ctx.fillRect(size * 0.22, 0, size * 0.56, size);
-  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3; ctx.setLineDash([12, 12]);
-  ctx.beginPath(); ctx.moveTo(size / 2, 0); ctx.lineTo(size / 2, size); ctx.stroke(); ctx.setLineDash([]);
-  drawVehicle(ctx, settings.vehicle, settings.color, size / 2, size / 2 + 4, size * 0.62, 0);
+  const rainy = settings.weather === 'rain';
+  if (settings.view === 'back') {
+    const hy = size * 0.42;
+    const sky = ctx.createLinearGradient(0, 0, 0, hy);
+    sky.addColorStop(0, rainy ? '#6f7c8c' : '#5fb3ff'); sky.addColorStop(1, rainy ? '#aab4bf' : '#cdeaff');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, size, hy);
+    if (!rainy) { ctx.fillStyle = '#ffd93b'; ctx.beginPath(); ctx.arc(size * 0.72, hy * 0.45, size * 0.06, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = rainy ? '#4e7a4a' : '#78c159'; ctx.fillRect(0, hy, size, size - hy);
+    ctx.fillStyle = rainy ? '#454b53' : '#5f656e';
+    ctx.beginPath(); ctx.moveTo(size * 0.47, hy); ctx.lineTo(size * 0.53, hy); ctx.lineTo(size * 1.05, size); ctx.lineTo(-size * 0.05, size); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2; ctx.setLineDash([8, 8]);
+    ctx.beginPath(); ctx.moveTo(size / 2, hy); ctx.lineTo(size / 2, size); ctx.stroke(); ctx.setLineDash([]);
+    drawVehicleRear(ctx, settings.vehicle, settings.color, size / 2, size * 0.86, size * 0.5, 0);
+  } else {
+    ctx.fillStyle = rainy ? '#4e7a4a' : '#78c159';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = rainy ? '#454b53' : '#5f656e';
+    ctx.fillRect(size * 0.22, 0, size * 0.56, size);
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3; ctx.setLineDash([12, 12]);
+    ctx.beginPath(); ctx.moveTo(size / 2, 0); ctx.lineTo(size / 2, size); ctx.stroke(); ctx.setLineDash([]);
+    drawVehicle(ctx, settings.vehicle, settings.color, size / 2, size / 2 + 4, size * 0.62, 0);
+  }
   if (settings.weather === 'rain') {
     ctx.fillStyle = 'rgba(30,50,80,0.2)'; ctx.fillRect(0, 0, size, size);
     ctx.strokeStyle = 'rgba(215,228,255,0.6)'; ctx.lineWidth = 1.5; ctx.beginPath();
@@ -136,8 +151,11 @@ function renderHome() {
   ctx.restore();
 
   const w = settings.weather === 'rain' ? 'lluvia' : 'sol';
+  const v = settings.view === 'back' ? 'vista desde atrás' : 'vista desde arriba';
   $('#home-summary').textContent =
-    `${VEHICLES[settings.vehicle]} ${COLORS[settings.color].name.toLowerCase()} · Nivel ${settings.level} · ${settings.lanes} carriles · ${w}`;
+    `${VEHICLES[settings.vehicle]} ${COLORS[settings.color].name.toLowerCase()} · Nivel ${settings.level} · ${settings.lanes} carriles · ${w} · ${v}`;
+  const name = (settings.playerName || '').trim();
+  $('#home-hello').textContent = name ? `¡Hola, ${name}! 🏁` : '¡Hola, piloto! 🏁';
 
   const st = $('#calib-status');
   st.classList.remove('ok');
@@ -172,6 +190,7 @@ function syncSettingsUI() {
   $$('input[type=range][data-key]').forEach(r => { r.value = settings[r.dataset.key]; });
   $$('output[data-for]').forEach(o => { o.textContent = fmt[o.dataset.for](settings[o.dataset.for]); });
   $$('input[type=checkbox][data-key]').forEach(c => { c.checked = !!settings[c.dataset.key]; });
+  $$('input[type=text][data-key]').forEach(t => { if (document.activeElement !== t) t.value = settings[t.dataset.key] || ''; });
   $('#level-info').textContent = LEVEL_INFO[settings.level];
   $('.settings').classList.toggle('touch-mode', settings.inputMode === 'touch');
   renderHistory();
@@ -194,6 +213,9 @@ function bindSettings() {
       $(`output[data-for="${r.dataset.key}"]`).textContent = fmt[r.dataset.key](settings[r.dataset.key]);
     });
   });
+  $$('input[type=text][data-key]').forEach(t => {
+    t.addEventListener('input', () => { settings[t.dataset.key] = t.value.slice(0, 24); save(); });
+  });
   $$('input[type=checkbox][data-key]').forEach(c => {
     c.addEventListener('change', () => { settings[c.dataset.key] = c.checked; save(); });
   });
@@ -213,9 +235,10 @@ function renderHistory() {
     return `<tr><td>${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
       <td>N${r.level}</td><td>${r.input === 'gaze' ? '👁️' : '👆'}</td>
       <td>⭐ ${r.stars}/${r.starsTotal}</td><td>${r.avgReactionMs != null ? (r.avgReactionMs / 1000).toFixed(1) + ' s' : '–'}</td>
-      <td>${r.facePct != null ? r.facePct + '%' : '–'}</td></tr>`;
+      <td>${r.facePct != null ? r.facePct + '%' : '–'}</td>
+      <td>${r.maxSpeedPct ? '+' + r.maxSpeedPct + '%' : '–'}</td></tr>`;
   }).join('');
-  el.innerHTML = `<div class="scroll"><table><thead><tr><th>Fecha</th><th>Nivel</th><th></th><th>Estrellas</th><th>Reacción</th><th>Rostro</th></tr></thead><tbody>${tr}</tbody></table></div>`;
+  el.innerHTML = `<div class="scroll"><table><thead><tr><th>Fecha</th><th>Nivel</th><th></th><th>Estrellas</th><th>Reacción</th><th>Rostro</th><th>Vel. máx.</th></tr></thead><tbody>${tr}</tbody></table></div>`;
 }
 
 function exportCSV() {
@@ -330,7 +353,7 @@ function finishCalibration() {
   if (!main || main.span < 0.008) {
     $('#calib-test-title').textContent = 'No se logró calibrar';
     $('#calib-test-text').textContent = 'No hubo suficiente diferencia entre mirar a la izquierda y a la derecha.';
-    $('#calib-quality').textContent = 'Sugerencias: teléfono horizontal, acercarlo (25–35 cm), más luz de frente, y que el niño mire la estrella sin mover la cabeza.';
+    $('#calib-quality').textContent = 'Sugerencias: teléfono horizontal, acercarlo (25–35 cm), más luz de frente, y que quien juega mire la estrella sin mover la cabeza.';
     $('#calib-done').textContent = 'Volver';
     cal.failed = true;
     return;
@@ -340,7 +363,7 @@ function finishCalibration() {
   save();
   const q = main.span >= 0.035 ? 'Buena ✅' : main.span >= 0.018 ? 'Aceptable 🙂' : 'Baja ⚠️ (prueba acercar el teléfono o ponerlo horizontal)';
   $('#calib-test-title').textContent = '¡Calibración lista!';
-  $('#calib-test-text').textContent = 'Pide al niño que mire a cada lado. La zona amarilla es lo que ve el juego; se pone verde cuando se confirma.';
+  $('#calib-test-text').textContent = 'Pide al niño o la niña que mire a cada lado. La zona amarilla es lo que ve el juego; se pone verde cuando se confirma.';
   $('#calib-quality').textContent = `Calidad de la señal: ${q}`;
   $('#calib-done').textContent = cal.after === 'play' ? 'Jugar' : 'Listo';
   const t = thresholdFor(settings.sensitivity);
@@ -389,7 +412,9 @@ async function startGame() {
   }
   $('#overlay').classList.add('hidden');
   show('screen-game');
-  game = new Game($('#game-canvas'), { settings, sound });
+  game = new Game($('#game-canvas'), { settings, sound, onSpeedUp: showSpeedUp });
+  $('#hud-speed').classList.add('hidden');
+  $('#speedup').classList.remove('show');
   session = {
     duration: settings.sessionMinutes * 60,
     frames0: gaze.stats.frames,
@@ -405,6 +430,19 @@ async function startGame() {
   $('#gaze-ind').classList.toggle('on', gazeOn);
   requestWake();
   startCountdown();
+}
+
+let speedTimer = 0;
+function showSpeedUp(pct, atMax) {
+  const el = $('#speedup');
+  el.textContent = atMax ? '¡Velocidad máxima! 🏆' : '¡Más rápido! 🚀';
+  el.classList.add('show');
+  clearTimeout(speedTimer);
+  speedTimer = setTimeout(() => el.classList.remove('show'), 2200);
+  const hud = $('#hud-speed');
+  hud.querySelector('span').textContent = `+${pct}%`;
+  hud.classList.remove('hidden');
+  sound.go();
 }
 
 function startCountdown(from = 3) {
@@ -491,6 +529,7 @@ function endGame() {
     color: settings.color, weather: settings.weather,
     stars: s.stars, starsTotal: s.starsTotal, conesHit: s.conesHit, conesAvoided: s.conesAvoided,
     laneChanges: s.laneChanges, avgReactionMs: avgRt, facePct,
+    view: settings.view, maxSpeedPct: s.maxSpeedPct,
   });
   sound.done();
   const cell = (v, l) => `<div><b>${v}</b><span>${l}</span></div>`;
@@ -498,8 +537,11 @@ function endGame() {
     cell(`⭐ ${s.stars}`, `de ${s.starsTotal} estrellas`) +
     cell(s.laneChanges, 'cambios de carril') +
     cell(avgRt != null ? (avgRt / 1000).toFixed(1).replace('.', ',') + ' s' : '–', 'reacción promedio') +
+    cell(s.maxSpeedPct ? `🚀 +${s.maxSpeedPct}%` : '–', 'velocidad ganada') +
     (gazeOn ? cell(facePct + '%', 'rostro detectado') : cell(s.conesAvoided, 'conos esquivados'));
-  const title = s.stars >= s.starsTotal * 0.7 ? '¡Excelente carrera! 🏁' : s.stars > 0 ? '¡Muy bien! 🏁' : '¡Buen intento! 🏁';
+  const name = (settings.playerName || '').trim();
+  const base = s.stars >= s.starsTotal * 0.7 ? '¡Excelente carrera' : s.stars > 0 ? '¡Muy bien' : '¡Buen intento';
+  const title = `${base}${name ? ', ' + name : ''}! 🏁`;
   openOverlay(title, '', stats, [
     ['🔁 Otra vez', 'btn primary', () => startGame()],
     ['Menú', 'btn', goHome],

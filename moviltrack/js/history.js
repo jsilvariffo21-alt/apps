@@ -23,7 +23,7 @@ const COLS = [
   ['clima', 'weather'], ['estrellas', 'stars'], ['estrellas_total', 'starsTotal'],
   ['conos_chocados', 'conesHit'], ['conos_esquivados', 'conesAvoided'],
   ['cambios_carril', 'laneChanges'], ['reaccion_prom_ms', 'avgReactionMs'],
-  ['rostro_detectado_pct', 'facePct'],
+  ['rostro_detectado_pct', 'facePct'], ['vista', 'view'], ['velocidad_max_pct', 'maxSpeedPct'],
 ];
 
 export function toCSV(rows) {

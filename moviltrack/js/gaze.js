@@ -2,14 +2,14 @@
 //
 // Idea: para cada ojo se mide dónde está el centro del iris entre las dos
 // esquinas del ojo (0 = una esquina, 1 = la otra). Ese valor cambia cuando el
-// niño mira a izquierda o derecha. La calibración guarda el valor al mirar el
+// niño o la niña mira a izquierda o derecha. La calibración guarda el valor al mirar el
 // centro, la izquierda y la derecha de la pantalla; con eso se decide la zona.
 //
 // Todo el procesamiento ocurre en el dispositivo: el video nunca sale del equipo.
 
 const VENDOR = new URL('../vendor/mediapipe/', import.meta.url).href;
 
-// Puntos de MediaPipe (ojos del niño): esquinas de cada ojo y centros de iris.
+// Puntos de MediaPipe (ojos de quien juega): esquinas de cada ojo y centros de iris.
 const EYES = { right: { a: 33, b: 133 }, left: { a: 362, b: 263 } };
 const IRIS = [468, 473];
 const KEYS = ['both', 'left', 'right'];

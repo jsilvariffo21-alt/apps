@@ -1,5 +1,5 @@
 // Service worker: permite usar MovilTrack sin conexión después de la primera carga.
-const SHELL_CACHE = 'moviltrack-shell-v1';
+const SHELL_CACHE = 'moviltrack-shell-v2';
 const VENDOR_CACHE = 'moviltrack-vendor-mp-0.10.14';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',

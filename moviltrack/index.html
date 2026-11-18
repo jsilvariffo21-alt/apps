@@ -21,8 +21,9 @@
 <section id="screen-home" class="screen active">
   <div class="home">
     <header class="home-head">
+      <p id="home-hello" class="hello">¡Hola, piloto! 🏁</p>
       <h1>MovilTrack</h1>
-      <p class="tag">Carreras con la mirada</p>
+      <p class="tag">Carreras con la mirada para niñas y niños</p>
     </header>
     <canvas id="home-preview" aria-label="Vehículo elegido"></canvas>
     <p id="home-summary" class="summary"></p>
@@ -31,8 +32,8 @@
       <button id="btn-calibrate" class="btn">👁️&nbsp; Calibrar mirada</button>
     </div>
     <p id="calib-status" class="status"></p>
-    <button id="btn-settings" class="hold-btn" aria-label="Ajustes del adulto. Mantén presionado dos segundos.">
-      <span class="hold-fill"></span><span class="hold-label">⚙️ Ajustes del adulto <small>(mantén presionado)</small></span>
+    <button id="btn-settings" class="hold-btn" aria-label="Ajustes de la persona adulta. Mantén presionado dos segundos.">
+      <span class="hold-fill"></span><span class="hold-label">⚙️ Ajustes de la persona adulta <small>(mantén presionado)</small></span>
     </button>
     <p class="disclaimer">Herramienta de juego y entrenamiento visual. <strong>No es un dispositivo médico.</strong>
       El video de la cámara se procesa solo en este equipo y no se envía a ningún lugar.</p>
@@ -43,9 +44,25 @@
 <section id="screen-settings" class="screen">
   <div class="settings">
     <header class="settings-head">
-      <h2>Ajustes del adulto</h2>
+      <h2>Ajustes de la persona adulta</h2>
       <button id="btn-settings-done" class="btn primary">Listo</button>
     </header>
+
+    <div class="group">
+      <h3>Quien juega</h3>
+      <label class="field" for="i-name">Nombre (opcional, para saludar)</label>
+      <input id="i-name" class="text" type="text" maxlength="24" autocomplete="off" placeholder="Ej.: Sofi, Tomás, Alex…" data-key="playerName">
+      <p class="hint">Si se deja vacío, el juego saluda con "¡Hola, piloto!", que sirve para niñas y niños.</p>
+    </div>
+
+    <div class="group">
+      <h3>Vista del juego</h3>
+      <div class="seg" data-key="view">
+        <button data-val="top">⬇️ Desde arriba</button>
+        <button data-val="back">🛣️ Desde atrás (horizonte)</button>
+      </div>
+      <p class="hint">"Desde atrás" muestra la pista hacia el horizonte. "Desde arriba" es más simple de seguir con la vista.</p>
+    </div>
 
     <div class="group">
       <h3>Vehículo</h3>
@@ -80,6 +97,12 @@
         <button data-val="1">1</button><button data-val="2">2</button><button data-val="3">3</button><button data-val="4">4</button><button data-val="5">5</button>
       </div>
       <p id="level-info" class="hint"></p>
+      <h3>Aumento de velocidad</h3>
+      <div class="seg" data-key="speedStep">
+        <button data-val="0">No</button><button data-val="2">2 %</button><button data-val="3">3 %</button>
+        <button data-val="4">4 %</button><button data-val="5">5 %</button><button data-val="rand">2–5 % al azar</button>
+      </div>
+      <p class="hint">Cada 10 estrellas atrapadas el vehículo acelera un poco, hasta un máximo de 50 % más rápido que al inicio.</p>
       <h3>Carriles</h3>
       <div class="seg" data-key="lanes" data-type="num">
         <button data-val="2">2 carriles (izq. / der.)</button>
@@ -93,7 +116,7 @@
         <button data-val="gaze">👁️ Mirada (cámara)</button>
         <button data-val="touch">👆 Toque (sin cámara)</button>
       </div>
-      <p class="hint">El modo toque sirve para que el adulto pruebe el juego o para niños que puedan tocar la pantalla.</p>
+      <p class="hint">El modo toque sirve para que la persona adulta pruebe el juego o para niñas y niños que puedan tocar la pantalla.</p>
     </div>
 
     <div class="group gaze-only">
@@ -101,8 +124,8 @@
       <label class="field">Ojo a seguir</label>
       <div class="seg" data-key="eye">
         <button data-val="both">Ambos</button>
-        <button data-val="right">Derecho del niño</button>
-        <button data-val="left">Izquierdo del niño</button>
+        <button data-val="right">Derecho de quien juega</button>
+        <button data-val="left">Izquierdo de quien juega</button>
       </div>
       <p class="hint">Usa un solo ojo si hay estrabismo o si un ojo se mueve menos.</p>
 
@@ -160,7 +183,7 @@
       <ul class="tips">
         <li>Usa el teléfono <strong>horizontal</strong> y fíjalo con un soporte.</li>
         <li>Distancia: <strong>25 a 35 cm</strong> de la cara.</li>
-        <li>Luz de frente; evita ventanas detrás del niño.</li>
+        <li>Luz de frente; evita ventanas detrás de quien juega.</li>
       </ul>
       <div class="row">
         <button id="calib-cancel" class="btn">Volver</button>
@@ -177,7 +200,7 @@
   <div id="calib-test" class="calib-step">
     <div class="calib-card">
       <h2 id="calib-test-title">Prueba la mirada</h2>
-      <p id="calib-test-text">Pide al niño que mire a cada lado. La zona que se ilumina es la que detecta el juego.</p>
+      <p id="calib-test-text">Pide al niño o la niña que mire a cada lado. La zona que se ilumina es la que detecta el juego.</p>
       <div class="zones">
         <div class="zone" data-zone="left">⬅️</div>
         <div class="zone" data-zone="center">⏺</div>
@@ -200,6 +223,7 @@
   <canvas id="game-canvas"></canvas>
   <div class="hud">
     <div class="hud-score">⭐ <span id="hud-stars">0</span></div>
+    <div id="hud-speed" class="hud-speed hidden">🚀 <span>+0%</span></div>
     <div class="hud-time"><div id="hud-time-bar"></div></div>
     <button id="btn-pause" class="hud-btn" aria-label="Pausa">⏸</button>
   </div>
@@ -208,6 +232,7 @@
     <span data-zone="left"><i></i></span><span data-zone="center"><i></i></span><span data-zone="right"><i></i></span>
   </div>
   <div id="countdown" class="countdown hidden"></div>
+  <div id="speedup" class="speedup" aria-live="polite"></div>
   <div id="overlay" class="overlay hidden">
     <div class="card">
       <h2 id="ov-title"></h2>

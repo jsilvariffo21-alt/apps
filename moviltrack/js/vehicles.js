@@ -144,3 +144,105 @@ function drawMoto(ctx, c, s) {
   ellipse(ctx, 0, -s * 0.49, w * 0.14, s * 0.02);
   ctx.fill();
 }
+
+// ---------- Vista desde atrás ----------
+/** (x, y) = centro inferior (donde toca la pista); w = ancho del auto en px. */
+export function drawVehicleRear(ctx, type, colorKey, x, y, w, tilt = 0) {
+  const c = COLORS[colorKey] || COLORS.blue;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(tilt);
+  if (type === 'moto') drawMotoRear(ctx, c, w); else drawCarRear(ctx, c, w);
+  ctx.restore();
+}
+
+function drawCarRear(ctx, c, w) {
+  const h = w * 0.62;
+  const lw = Math.max(1.5, w * 0.018);
+  // sombra
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ellipse(ctx, 0, -w * 0.01, w * 0.58, w * 0.07); ctx.fill();
+  // ruedas
+  ctx.fillStyle = '#111';
+  roundRect(ctx, -w * 0.47, -h * 0.3, w * 0.17, h * 0.3, w * 0.03); ctx.fill();
+  roundRect(ctx, w * 0.3, -h * 0.3, w * 0.17, h * 0.3, w * 0.03); ctx.fill();
+  // cabina (más angosta arriba)
+  ctx.fillStyle = c.dark;
+  ctx.strokeStyle = c.outline;
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(-w * 0.4, -h * 0.66);
+  ctx.lineTo(-w * 0.31, -h * 0.98);
+  ctx.quadraticCurveTo(0, -h * 1.04, w * 0.31, -h * 0.98);
+  ctx.lineTo(w * 0.4, -h * 0.66);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // luneta
+  ctx.fillStyle = '#8cc4ef';
+  ctx.beginPath();
+  ctx.moveTo(-w * 0.33, -h * 0.7);
+  ctx.lineTo(-w * 0.26, -h * 0.93);
+  ctx.quadraticCurveTo(0, -h * 0.97, w * 0.26, -h * 0.93);
+  ctx.lineTo(w * 0.33, -h * 0.7);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(-w * 0.2, -h * 0.72); ctx.lineTo(-w * 0.12, -h * 0.9); ctx.lineTo(-w * 0.04, -h * 0.9); ctx.lineTo(-w * 0.12, -h * 0.72);
+  ctx.closePath(); ctx.fill();
+  // carrocería
+  ctx.fillStyle = c.body;
+  ctx.strokeStyle = c.outline;
+  roundRect(ctx, -w / 2, -h * 0.7, w, h * 0.56, w * 0.08);
+  ctx.fill(); ctx.stroke();
+  // luces traseras
+  ctx.fillStyle = '#ff3b3b';
+  roundRect(ctx, -w * 0.45, -h * 0.6, w * 0.17, h * 0.12, w * 0.025); ctx.fill();
+  roundRect(ctx, w * 0.28, -h * 0.6, w * 0.17, h * 0.12, w * 0.025); ctx.fill();
+  // patente
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = Math.max(1, w * 0.008);
+  roundRect(ctx, -w * 0.11, -h * 0.42, w * 0.22, h * 0.13, w * 0.015); ctx.fill(); ctx.stroke();
+  // parachoques
+  ctx.fillStyle = '#2b2e33';
+  roundRect(ctx, -w * 0.48, -h * 0.2, w * 0.96, h * 0.1, w * 0.03); ctx.fill();
+}
+
+function drawMotoRear(ctx, c, w) {
+  const s = w; // ancho de referencia (el de un auto); la moto es más angosta
+  const lw = Math.max(1.5, s * 0.018);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ellipse(ctx, 0, -s * 0.01, s * 0.2, s * 0.05); ctx.fill();
+  // rueda trasera
+  ctx.fillStyle = '#111';
+  roundRect(ctx, -s * 0.06, -s * 0.24, s * 0.12, s * 0.24, s * 0.04); ctx.fill();
+  // guardabarro y asiento
+  ctx.fillStyle = c.body;
+  ctx.strokeStyle = c.outline;
+  ctx.lineWidth = lw;
+  roundRect(ctx, -s * 0.1, -s * 0.34, s * 0.2, s * 0.14, s * 0.05); ctx.fill(); ctx.stroke();
+  // luz trasera
+  ctx.fillStyle = '#ff3b3b';
+  roundRect(ctx, -s * 0.05, -s * 0.31, s * 0.1, s * 0.035, s * 0.015); ctx.fill();
+  // manubrio
+  ctx.strokeStyle = '#333';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(2, s * 0.025);
+  ctx.beginPath(); ctx.moveTo(-s * 0.22, -s * 0.5); ctx.lineTo(s * 0.22, -s * 0.5); ctx.stroke();
+  // piloto (espalda)
+  ctx.fillStyle = c.dark;
+  ctx.strokeStyle = c.outline;
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.13, -s * 0.34);
+  ctx.lineTo(-s * 0.17, -s * 0.6);
+  ctx.quadraticCurveTo(0, -s * 0.7, s * 0.17, -s * 0.6);
+  ctx.lineTo(s * 0.13, -s * 0.34);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // casco
+  ctx.fillStyle = c.body;
+  ellipse(ctx, 0, -s * 0.73, s * 0.11, s * 0.11); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ellipse(ctx, -s * 0.04, -s * 0.77, s * 0.035, s * 0.025); ctx.fill();
+}
